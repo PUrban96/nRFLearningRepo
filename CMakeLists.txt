@@ -4,7 +4,17 @@ cmake_minimum_required(VERSION 3.20.0)
 find_package(Zephyr REQUIRED HINTS $ENV{ZEPHYR_BASE})
 project(my_blinky)
 
-target_sources(app PRIVATE src/leds_buttons/leds_buttons.c)
-zephyr_include_directories(src/leds_buttons)
+set(DIRECTION_APP
+    src
+    src/leds_buttons
+    src/leds_pwm
+)
 
-target_sources(app PRIVATE src/main.c)
+set(SOURCE_APP
+    src/main.c
+    src/leds_buttons/leds_buttons.c
+    src/leds_pwm/leds_pwm.c
+)
+
+target_sources(app PRIVATE ${SOURCE_APP})
+zephyr_include_directories(${DIRECTION_APP})
