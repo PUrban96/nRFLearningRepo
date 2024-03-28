@@ -5,7 +5,6 @@
  */
 
 #include <zephyr/kernel.h>
-#include <zephyr/sys/printk.h>
 
 #include "leds_buttons.h"
 #include "leds_pwm.h"
@@ -23,12 +22,6 @@ int main(void)
 
 	while (1)
 	{
-		bme280_readAllChannel();
-
-		printf("Temperature = %.1fst.C ", bme280_getTemperature());
-		printf("Pressure = %.1fhPa ", bme280_getPressure());
-		printf("Humidity = %.1f% \r\n", bme280_getHumidity());
-
 		k_msleep(SLEEP_TIME_MS);
 	}
 	return 0;

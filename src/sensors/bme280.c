@@ -1,9 +1,20 @@
 #include <zephyr/kernel.h>
 #include <zephyr/drivers/sensor.h>
+#include <zephyr/sys/printk.h>
+
+#include "bme280.h"
 
 const struct device *bme280_dev = DEVICE_DT_GET_ANY(bosch_bme280);
 
 static struct sensor_value temp, press, hum;
+
+static void readTimerExpiryCallback(struct k_timer *timer_id);
+static void readWorkCallback(struct k_work *work_id);
+static void printTimerExpiryCallback(struct k_timer *timer_id);
+
+K_WORK_DEFINE(bme280ReadWorkQueue, readWorkCallback);
+K_TIMER_DEFINE(bme280ReadTimer, readTimerExpiryCallback, NULL);
+K_TIMER_DEFINE(bme280PrintTimer, printTimerExpiryCallback, NULL);
 
 void bme280_init(void)
 {
@@ -11,6 +22,29 @@ void bme280_init(void)
     {
         printk("BME280 not ready!\n");
     }
+    else
+    {
+        k_timer_start(&bme280ReadTimer, K_SECONDS(1), K_SECONDS(1));
+        k_timer_start(&bme280PrintTimer, K_SECONDS(2), K_SECONDS(2));
+        printk("BME280 ready!\n");
+    }
+}
+
+static void readTimerExpiryCallback(struct k_timer *timer_id)
+{
+    k_work_submit(&bme280ReadWorkQueue);
+}
+
+static void readWorkCallback(struct k_work *work_id)
+{
+    bme280_readAllChannel();
+}
+
+static void printTimerExpiryCallback(struct k_timer *timer_id)
+{
+    printf("Temperature = %.1fst.C ", bme280_getTemperature());
+    printf("Pressure = %.1fhPa ", bme280_getPressure());
+    printf("Humidity = %.1f% \r\n", bme280_getHumidity());
 }
 
 void bme280_readAllChannel(void)
